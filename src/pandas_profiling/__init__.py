@@ -22,6 +22,7 @@ from pandas_profiling.controller import pandas_decorator
 from pandas_profiling.model.describe import describe as describe_df
 from pandas_profiling.model.messages import MessageType
 from pandas_profiling.report import get_report_structure
+from pandas_profiling.profilers.table_profiler import TableProfiler
 
 
 class ProfileReport(object):
@@ -33,7 +34,7 @@ class ProfileReport(object):
     html = ""
     """the HTML representation of the report, without the wrapper (containing `<head>` etc.)"""
 
-    def __init__(self, df, minimal=False, config_file: Path = None, **kwargs):
+    def __init__(self, df, minimal=False, config_file: Path = None, bins=10, corr_reject=0.9, **kwargs):
         if config_file is not None and minimal:
             raise ValueError(
                 "Arguments `config_file` and `minimal` are mutually exclusive."
@@ -62,7 +63,10 @@ class ProfileReport(object):
         # df.columns = df.columns.astype("str")
 
         # Get dataset statistics
-        description_set = describe_df(df)
+        # description_set = describe_df(df)
+        profiler = TableProfiler(df, bins=bins, corr_reject=corr_reject)
+        profiler.do_analysis()
+        description_set = profiler.get_output_stats()
 
         # Build report structure
         self.sample = self.get_sample(df)

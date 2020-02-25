@@ -563,7 +563,7 @@ def describe(df: SparkDataFrame) -> dict:
     if not isinstance(df, SparkDataFrame):
         raise TypeError("df must be of type pyspark.sql.DataFrame")
 
-    if df.empty:
+    if len(df.columns) == 0:
         raise ValueError("df can not be empty")
 
     disable_progress_bar = not config["progress_bar"].get(bool)
