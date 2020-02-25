@@ -8,7 +8,10 @@ from datetime import datetime
 
 import pandas as pd
 import numpy as np
+from pandas import DataFrame as PandasDataFrame
+from pyspark.sql import DataFrame as SparkDataFrame
 from tqdm.auto import tqdm
+
 
 from pandas_profiling.model.messages import MessageType
 from pandas_profiling.version import __version__
@@ -46,17 +49,17 @@ class ProfileReport(object):
         self.date_start = datetime.utcnow()
 
         # Treat index as any other column
-        if (
-            not pd.Index(np.arange(0, len(df))).equals(df.index)
-            or df.index.dtype != np.int64
-        ):
-            df = df.reset_index()
-
-        # Rename reserved column names
-        df = rename_index(df)
-
-        # Ensure that columns are strings
-        df.columns = df.columns.astype("str")
+        # if (
+        #     not pd.Index(np.arange(0, len(df))).equals(df.index)
+        #     or df.index.dtype != np.int64
+        # ):
+        #     df = df.reset_index()
+        #
+        # # Rename reserved column names
+        # df = rename_index(df)
+        #
+        # # Ensure that columns are strings
+        # df.columns = df.columns.astype("str")
 
         # Get dataset statistics
         description_set = describe_df(df)
@@ -77,7 +80,7 @@ class ProfileReport(object):
             )
             pbar.update()
 
-    def get_sample(self, df: pd.DataFrame) -> dict:
+    def get_sample(self, df: SparkDataFrame) -> dict:
         """Get head/tail samples based on the configuration
 
         Args:
@@ -89,11 +92,11 @@ class ProfileReport(object):
         sample = {}
         n_head = config["samples"]["head"].get(int)
         if n_head > 0:
-            sample["head"] = df.head(n=n_head)
+            sample["head"] = df.limit(n_head).toPandas().fillna(value='null')
 
-        n_tail = config["samples"]["tail"].get(int)
-        if n_tail > 0:
-            sample["tail"] = df.tail(n=n_tail)
+        # n_tail = config["samples"]["tail"].get(int)
+        # if n_tail > 0:
+        #     sample["tail"] = df.limit(n_tail).toPandas()
 
         return sample
 

@@ -99,8 +99,8 @@ n_freq_table_max: 10
 
 # Configuration related to the samples area
 samples:
-    head: 10
-    tail: 10
+    head: 50
+    tail: 0
 
 # Configuration related to the rejection of variables
 reject_variables: True

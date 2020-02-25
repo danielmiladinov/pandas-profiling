@@ -10,6 +10,7 @@ from urllib.parse import urlsplit
 from tqdm.autonotebook import tqdm
 import numpy as np
 import pandas as pd
+from pyspark.sql import DataFrame as SparkDataFrame
 from astropy.stats import bayesian_blocks
 from scipy.stats.stats import chisquare
 
@@ -545,7 +546,7 @@ def sort_column_names(dct: Mapping, sort: str):
     return dct
 
 
-def describe(df: pd.DataFrame) -> dict:
+def describe(df: SparkDataFrame) -> dict:
     """Calculate the statistics for each series in this DataFrame.
 
     Args:
@@ -559,8 +560,8 @@ def describe(df: pd.DataFrame) -> dict:
             - missing: missing value diagrams.
             - messages: direct special attention to these patterns in your data.
     """
-    if not isinstance(df, pd.DataFrame):
-        raise TypeError("df must be of type pandas.DataFrame")
+    if not isinstance(df, SparkDataFrame):
+        raise TypeError("df must be of type pyspark.sql.DataFrame")
 
     if df.empty:
         raise ValueError("df can not be empty")

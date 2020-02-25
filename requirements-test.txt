@@ -7,3 +7,4 @@ pytest-black
 nbval
 fastparquet==0.3.3
 flake8
+py4j
