@@ -3,6 +3,7 @@ import pandas_profiling.report.formatters as formatters
 import pandas as pd
 import numpy as np
 from pandas_profiling.profilers.column_profiler import ColumnProfiler
+from pandas_profiling.helpers import partition
 from pyspark.sql import DataFrame as SparkDataFrame
 from pkg_resources import resource_filename
 from threading import Thread
@@ -63,8 +64,11 @@ class TableProfiler(object):
         while i < len(self.df.columns):
             threads = []
             batch_columns = self.df.columns[i:i + batch_size]
-            numeric_columns = [column for column in batch_columns if self.df.select(column).dtypes[0][1] in NUMERIC_FIELDS]
-            non_numeric_columns = [column for column in batch_columns if self.df.select(column).dtypes[0][1] not in NUMERIC_FIELDS]
+
+            numeric_columns, non_numeric_columns = partition(
+                batch_columns,
+                lambda c: self.df.select(c).dtypes[0][1] in NUMERIC_FIELDS
+            )
 
             # Thread non-numeric columns
             for column in non_numeric_columns:
