@@ -126,9 +126,10 @@ def get_fmt_mapping() -> Dict[str, Callable]:
         "raw": lambda x: x,
     }
 
+
 def fmt_float(x):
     x *= 100
     if x == int(x):
-        return '%.0f%%' % x
+        return fmt_numeric(x, 0)
     else:
-        return '%.1f%%' % x
+        return fmt_numeric(x, 1)

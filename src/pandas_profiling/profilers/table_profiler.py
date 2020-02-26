@@ -7,6 +7,10 @@ from pyspark.sql import DataFrame as SparkDataFrame
 from pkg_resources import resource_filename
 from threading import Thread
 from itertools import product
+from pandas_profiling.model.base import Variable
+from pyspark.sql import functions as f
+from pandas_profiling import __version__
+from pandas_profiling.config import config as config
 
 NUMERIC_FIELDS = {"tinyint", "smallint", "int", "bigint", "float", "double", "decimal"}
 
@@ -124,15 +128,32 @@ class TableProfiler(object):
     def calculate_table_stats(self):
         variable_stats = pd.DataFrame(self.column_description)
         # General statistics
-        self.table_stats["nvar"] = len(self.df.columns)
-        self.table_stats["total_missing"] = float(variable_stats.ix["n_missing"].sum()) / (
-                self.table_stats["n"] * self.table_stats["nvar"])
+        self.table_stats["n_var"] = len(self.df.columns)
+        self.table_stats["n_cells_missing"] = float(variable_stats.loc["n_missing"].sum())
+        self.table_stats["p_cells_missing"] = self.table_stats["n_cells_missing"] / (
+                self.table_stats["n"] * self.table_stats["n_var"])
+
+        supported_columns = variable_stats.transpose()[
+            variable_stats.transpose().type != Variable.S_TYPE_UNSUPPORTED
+            ].index.tolist()
+        duplicates = self.df.groupBy(self.df.columns)\
+            .count()\
+            .where(f.col('count') > 1)\
+            .select(f.sum('count'))\
+            .show()
+        self.table_stats["n_duplicates"] = duplicates if duplicates is not None else 0
+        self.table_stats["p_duplicates"] = (
+            (self.table_stats["n_duplicates"] / self.table_stats["n"])
+            if (len(supported_columns) > 0 and self.table_stats["n"] > 0)
+            else 0
+        )
         memsize = 0
-        self.table_stats['memsize'] = formatters.fmt_bytesize(memsize)
-        self.table_stats['recordsize'] = formatters.fmt_bytesize(memsize / self.table_stats['n'])
-        self.table_stats.update({k: 0 for k in ("NUM", "DATE", "CONST", "CAT", "UNIQUE", "CORR")})
-        self.table_stats.update(dict(variable_stats.loc['type'].value_counts()))
-        self.table_stats['REJECTED'] = self.table_stats['CONST'] + self.table_stats['CORR']
+        self.table_stats['memory_size'] = formatters.fmt_bytesize(memsize)
+        self.table_stats['record_size'] = formatters.fmt_bytesize(memsize / self.table_stats['n'])
+        self.table_stats['types'] = {}
+        self.table_stats['types'].update({k: 0 for k in ("NUM", "DATE", "CONST", "CAT", "UNIQUE", "CORR")})
+        self.table_stats['types'].update(dict(variable_stats.loc['type'].value_counts()))
+        self.table_stats['types']['REJECTED'] = self.table_stats['types']['CONST'] + self.table_stats['types']['CORR']
 
         # this whole section of min_freq/max_freq probably doesn't need to happen!
         max_freqs = {}
@@ -165,7 +186,12 @@ class TableProfiler(object):
             'table': self.table_stats,
             'variables': variable_stats.T,
             'maxfreq': max_freqs,
-            'minfreq': min_freqs
+            'minfreq': min_freqs,
+            'messages': [],
+            'package': {
+                "pandas_profiling_version": __version__,
+                "pandas_profiling_config": config.dump(),
+            },
         }
 
     def get_output_stats(self):
