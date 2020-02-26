@@ -48,9 +48,9 @@ class FloatColumn(object):
                                                     .na.drop()
                                                     .selectExpr(
                 "percentile_approx({col},CAST({n} AS DOUBLE))"
-                .format(col=self.column, n=x)).toPandas().ix[:, 0])
+                .format(col=self.column, n=x)).toPandas().iloc[:, 0])
 
-        self.column_stats = stats_df.ix[0].copy()
+        self.column_stats = stats_df.iloc[0].copy()
         self.column_stats.name = self.column
         self.column_stats["range"] = self.column_stats["max"] - self.column_stats["min"]
         self.column_stats["iqr"] = self.column_stats[formatter.fmt_float(0.75)] - self.column_stats[
@@ -61,7 +61,7 @@ class FloatColumn(object):
                                     .na.drop()
                                     .select(
             df_abs(col(self.column) - self.column_stats["mean"]).alias("delta"))
-                                    .agg(df_sum(col("delta"))).toPandas().ix[0, 0] / float(
+                                    .agg(df_sum(col("delta"))).toPandas().iloc[0, 0] / float(
             self.table_stats["count"]))
 
         self.column_stats["type"] = "NUM"

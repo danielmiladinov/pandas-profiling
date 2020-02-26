@@ -55,7 +55,7 @@ class ColumnProfiler(object):
         results_data["fill_rate"] = float(1) - results_data["p_missing"]
         results_data["p_infinite"] = 0
         results_data["n_infinite"] = 0
-        self.stats = results_data.ix[0].copy()
+        self.stats = results_data.iloc[0].copy()
         self.stats["memorysize"] = 0
         if self.stats["n_missing"] > 0:
             self.stats["distinct_count"] += 1

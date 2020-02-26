@@ -51,7 +51,7 @@ class IntegerColumn(object):
                 .orderBy(self.df[self.column].desc()).head(1)[0][self.column]
         df2.unpersist()
 
-        self.column_stats = stats_df.ix[0].copy()
+        self.column_stats = stats_df.iloc[0].copy()
         self.column_stats.name = self.column
         self.column_stats["range"] = self.column_stats["max"] - self.column_stats["min"]
         self.column_stats["iqr"] = self.column_stats[formatter.fmt_float(0.75)] - self.column_stats[formatter.fmt_float(0.25)]
@@ -61,7 +61,7 @@ class IntegerColumn(object):
                              .select(df_abs(col(self.column) - self.column_stats["mean"])
                                      .alias("delta"))
                              .agg(df_sum(col("delta")))
-                             .toPandas().ix[0, 0] / float(self.table_stats["count"]))
+                             .toPandas().iloc[0, 0] / float(self.table_stats["count"]))
         self.column_stats["type"] = "NUM"
         self.column_stats['n_zeros'] = self.df.select(self.column)\
             .where(col(self.column) == 0.0).count()

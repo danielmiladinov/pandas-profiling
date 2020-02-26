@@ -84,7 +84,7 @@ class DateColumn(object):
                  df_max(col(self.column)).alias("max")
                  ).toPandas()
 
-        self.column_stats = stats_df.ix[0].copy()
+        self.column_stats = stats_df.iloc[0].copy()
         self.column_stats["max_value_counts"] = top_days
         self.column_stats["min_value_counts"] = top_months
         self.column_stats["type"] = "DATE"

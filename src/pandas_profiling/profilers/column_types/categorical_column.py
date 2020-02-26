@@ -41,7 +41,7 @@ class CategoricalColumn(object):
                  .limit(1)
                  .withColumnRenamed(self.column, "top")
                  .withColumnRenamed("count({c})".format(c=self.column), "freq")
-                 ).toPandas().ix[0]
+                 ).toPandas().iloc[0]
 
         # Get the top 50 classes by value count,
         # and put the rest of them grouped at the

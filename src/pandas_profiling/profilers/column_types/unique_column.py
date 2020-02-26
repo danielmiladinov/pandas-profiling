@@ -26,10 +26,10 @@ class UniqueColumn(object):
         self.column_stats = pd.Series(['UNIQUE'], index=['type'], name=self.column)
         self.column_stats["value_counts"] = (self.df.select(self.column)
                                              .na.drop()
-                                             .limit(50)).toPandas().ix[:, 0].value_counts()
+                                             .limit(50)).toPandas().iloc[:, 0].value_counts()
 
         pd_df = self.df.select(self.column).toPandas()
-        self.column_stats["max_value_counts"] = pd_df.ix[:50]
+        self.column_stats["max_value_counts"] = pd_df.iloc[:50]
         self.column_stats["min_value_counts"] = pd_df.tail(50)
         self.column_stats["type"] = "UNIQUE"
 
