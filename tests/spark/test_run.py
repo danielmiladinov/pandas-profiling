@@ -19,11 +19,11 @@ def test_generate_report():
     java_import(sc._gateway.jvm, "com.healthverity.flagler.SparkProcessor")
     df = spark.read.option("header", True) \
         .option("inferSchema", "true") \
-        .csv("Sample.csv")
+        .csv("tests/spark/sample_2.csv")
     table_name = 'test_table'
     df.createOrReplaceTempView(table_name)
     profile = ProfileReport(df, title='Profile Report: ' + table_name)
-    profile.to_file(output_file=table_name + ".html")
+    profile.to_file(output_file=f'/tmp/{table_name}_pandas_profiling.html')
 
     assert True
 
