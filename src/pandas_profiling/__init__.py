@@ -63,10 +63,15 @@ class ProfileReport(object):
         # df.columns = df.columns.astype("str")
 
         # Get dataset statistics
-        # description_set = describe_df(df)
         profiler = TableProfiler(df, bins=bins, corr_reject=corr_reject)
         profiler.do_analysis()
-        description_set = profiler.get_output_stats()
+        description_set_tp = profiler.get_output_stats()
+        description_set_pd = describe_df(df)
+
+        description_set = {
+            **description_set_tp,
+            **description_set_pd,
+        }
 
         # Build report structure
         self.sample = self.get_sample(df)
