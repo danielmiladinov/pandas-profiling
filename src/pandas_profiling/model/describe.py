@@ -546,6 +546,12 @@ def sort_column_names(dct: Mapping, sort: str):
     return dct
 
 
+def make_series(column_name: str, df: SparkDataFrame) -> pd.Series:
+    data = [row[0] for row in df.select(column_name).collect()]
+    return pd.Series(data=data, name=column_name)
+
+
+
 def describe(df: SparkDataFrame) -> dict:
     """Calculate the statistics for each series in this DataFrame.
 
@@ -573,7 +579,7 @@ def describe(df: SparkDataFrame) -> dict:
     if pool_size <= 0:
         pool_size = multiprocessing.cpu_count()
 
-    args = [(column, series) for column, series in df.iteritems()]
+    args = [(column_name, make_series(column_name, df)) for column_name in df.columns]
     series_description = {}
     with tqdm(total=len(args), desc="variables", disable=disable_progress_bar) as pbar:
         if pool_size == 1:
@@ -615,19 +621,21 @@ def describe(df: SparkDataFrame) -> dict:
     # Transform the series_description in a DataFrame
     variable_stats = pd.DataFrame(series_description)
 
+    pdf = df.toPandas()
+
     # Get correlations
-    correlations = calculate_correlations(df, variables)
+    correlations = calculate_correlations(pdf, variables)
 
     # Scatter matrix
-    scatter_matrix = get_scatter_matrix(df, variables)
+    scatter_matrix = get_scatter_matrix(pdf, variables)
 
     # Table statistics
     with tqdm(total=1, desc="table", disable=disable_progress_bar) as pbar:
-        table_stats = describe_table(df, variable_stats)
+        table_stats = describe_table(pdf, variable_stats)
         pbar.update(1)
 
     # missing diagrams
-    missing = get_missing_diagrams(df, table_stats)
+    missing = get_missing_diagrams(pdf, table_stats)
 
     # Messages
     with tqdm(total=3, desc="warnings", disable=disable_progress_bar) as pbar:

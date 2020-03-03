@@ -7,6 +7,7 @@ from typing import Callable, Dict, List, Optional
 
 import pandas as pd
 import numpy as np
+from pyspark.sql import DataFrame as SparkDataFrame
 from confuse import NotFoundError
 from pandas.core.base import DataError
 from scipy import stats
@@ -135,7 +136,7 @@ https://github.com/pandas-profiling/pandas-profiling/issues
     )
 
 
-def calculate_correlations(df: pd.DataFrame, variables: dict) -> dict:
+def calculate_correlations(df: SparkDataFrame, variables: dict) -> dict:
     """Calculate the correlation coefficients between variables for the correlation types selected in the config
     (pearson, spearman, kendall, phi_k, cramers).
 
